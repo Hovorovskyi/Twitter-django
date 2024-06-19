@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<section class="py-3 text-center container">
+    <div class="row py-lg-3">
+        <div class="col-md-7 col-lg-8 mx-auto">
+            <h1 class="fw-light">Posts by: {{ user.username }}</h1>
+        </div>
+    </div>
+</section>
+
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-8 mx-auto">
+                <h4 class="mb-3">User Information</h4>
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body d-flex">
+                        <div class="col-md-4">
+                            {% if user.user_avatar %}
+                                <img src="{{ user.user_avatar.url }}" class="img-fluid border" style="max-height: 200px; max-width: 200px; object-fit: cover;">
+                            {% else %}
+                                <img src="{% static 'img/def_for_twit.jpeg' %}" class="img-fluid border" style="max-height: 200px; max-width: 200px; object-fit: cover;" alt="Default Avatar">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <p class="card-text">User: {{ user.username }}</p>
+                            <p class="card-text">Email: {{ user.email }}</p>
+                            <div class="d-flex align-items-center mb-5">
+                                <a href="{% url 'user_followers' user.pk %}">Followers: {{ user.followers.count }}</a> |
+                                <a href="{% url 'user_following' user.pk %}">Following: {{ user.following.count }}</a>
+                            </div>
+                            <div class="btn-group">
+                            {% if user.pk == current_user.pk %}
+                                <a href="{% url 'edit_user' user.pk %}" class="btn btn-outline-primary">Redirect</a>
+                                <a href="{% url 'following_posts' %}" class="btn btn-outline-primary">Posts by following</a>
+                            {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">User Posts</h5>
+                {% if posts %}
+                    {% for post in posts %}
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if post.user_post.user_avatar %}
+                                        <img src="{{ post.user_post.user_avatar.url }}" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                                    {% else %}
+                                        <img src="{% static 'img/def_for_twit.jpeg' %}" alt="Default Avatar" class="rounded-circle me-2" width="40" height="40">
+                                    {% endif %}
+                                    <p class="mb-0">Posted by: {{ post.user_post.username }} on {{ post.created_at }}</p>
+                                    {% if post.user_post.pk == current_user.pk %}
+                                        <div class="dropdown ms-auto">
+                                          <button class="btn btn-outline-primary p-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                          Option</button>
+                                          <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'edit_post' post.pk %}">Edit</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'delete_post' post.pk %}">Delete</a></li>
+                                          </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <p class="card-text">{{ post.content }}</p>
+                                <div>
+                                    {% if user in post.likes.all %}
+                                        <p class="card-text"><small class="text-muted">{{ post.total_likes }} likes</small></p>
+                                    {% else %}
+                                        <p class="card-text"><small class="text-muted">0 likes</small></p>
+                                    {% endif %}
+                                </div>
+                                <p class="card-text"><small class="text-muted">{{ post.total_comments }} comments</small></p>
+                                <div class="d-flex justify-content-between">
+                                    <div class="btn-group">
+                                        <a href="{% url 'post_detail' post.id %}" class="btn btn-outline-primary">View</a>
+                                        <a href="{% url 'post_list' %}" class="btn btn-outline-primary">All posts</a>
+                                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#commentsSection{{ post.id }}" aria-expanded="false" aria-controls="commentsSection{{ post.id }}">
+                                            View comments
+                                        </button>
+                                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addCommentForm{{ post.id }}" aria-expanded="false" aria-controls="addCommentForm{{ post.id }}">
+                                            Add comment
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <form method="post" action="{% url 'like_post' post.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-primary">
+                                                {% if request.user in post.likes.all %}
+                                                    Unlike / <span>{{ post.likes.count }} likes</span>
+                                                {% else %}
+                                                    Like / <span>{{ post.likes.count }} likes</span>
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="collapse mt-3" id="commentsSection{{ post.id }}">
+                                    <h5>Comments</h5>
+                                    <ul class="list-group list-group-flush">
+                                        {% for comment in post.comments.all %}
+                                            <li class="list-group-item">
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <strong>{{ comment.user_comment.username }}</strong> - {{ comment.content }} <small class="text-muted">{{ comment.created_at }}</small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        {% empty %}
+                                            <li class="list-group-item">No comments yet.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="collapse mt-3" id="addCommentForm{{ post.id }}">
+                                    <h5>Add a Comment</h5>
+                                    <form method="post" class="form-control" action="{% url 'add_comment' post.id %}">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            {{ form.content }}
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Append</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="list-group-item">No posts yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

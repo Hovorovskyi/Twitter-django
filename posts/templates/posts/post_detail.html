@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<section class="py-2 text-center container">
+    <div class="row py-lg-3">
+        <div class="col-md-7 col-lg-8 mx-auto">
+            <h1 class="fw-light">{{ post.title }}</h1>
+        </div>
+    </div>
+</section>
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-8 mx-auto">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            {% if post.user_post.user_avatar %}
+                                <img src="{{ post.user_post.user_avatar.url }}" alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                            {% else %}
+                                <img src="{% static 'img/def_for_twit.jpeg' %}" alt="Default Avatar" class="rounded-circle me-2" width="40" height="40">
+                            {% endif %}
+                            <p class="mb-0">Posted by: {{ post.user_post.username }} on {{ post.created_at }}</p>
+                            {% if post.user_post.pk == current_user.pk %}
+                                <div class="dropdown ms-auto">
+                                  <button class="btn btn-outline-primary p-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                  Option</button>
+                                  <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'edit_post' post.pk %}">Edit</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'delete_post' post.pk %}">Delete</a></li>
+                                  </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <p class="card-text">Content: {{ post.content }}</p>
+                        <div class="d-flex justify-content-between">
+                            <div class="btn-group">
+                                <a href="{% url 'post_list' %}" class="btn btn-outline-primary">All posts</a>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#commentsSection{{ post.id }}" aria-expanded="false" aria-controls="commentsSection{{ post.id }}">
+                                    View comments
+                                </button>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addCommentForm" aria-expanded="false" aria-controls="addCommentForm">
+                                    Add Comment
+                                </button>
+                            </div>
+                            <div>
+                                <form method="post" action="{% url 'like_post' post.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        {% if request.user in post.likes.all %}
+                                            Unlike / <span>{{ post.likes.count }} likes</span>
+                                        {% else %}
+                                            Like / <span>{{ post.likes.count }} likes</span>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="collapse mt-3" id="commentsSection{{ post.id }}">
+                            <h5>Comments</h5>
+                            <ul class="list-group list-group-flush">
+                                {% for comment in post.comments.all %}
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <strong>{{ comment.user_comment.username }}</strong> - {{ comment.content }} <small class="text-muted">{{ comment.created_at }}</small>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item">No comments yet.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="collapse mt-3" id="addCommentForm">
+                            <h5>Add a Comment</h5>
+                            <form method="post" class="form-control" action="{% url 'add_comment' post.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item">{{ form.content }}</li>
+                                    </ul>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Append</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

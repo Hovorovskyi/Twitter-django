@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block content %}
+<section class="py-2 text-center container">
+    <div class="row py-lg-3">
+        <div class="col-md-7 col-lg-8 mx-auto">
+            <h1 class="fw-light">{{ user.username }}</h1>
+        </div>
+    </div>
+</section>
+<div class="album py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                {% if user.user_avatar %}
+                    <img src="{{ user.user_avatar.url }}" class="img-fluid border" style="max-height: 400px; max-width: 400px; object-fit: cover;">
+                {% else %}
+                    <img src="{% static 'img/def_for_twit.jpeg' %}" class="img-fluid border" style="max-height: 400px; object-fit: cover;" alt="Default Avatar">
+                {% endif %}
+            </div>
+            <div class="col-md-7 col-lg-8 mx-auto">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <p class="card-text">User: {{ user.username }}</p>
+                        {% if user.description %}
+                            <p class="card-text">Description: {{ user.description }}</p>
+                        {% endif %}
+                        <p class="card-text">Email: {{ user.email }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'user_followers' user.pk %}">Followers: {{ user.followers.count }}</a> |
+                                <a href="{% url 'user_following' user.pk %}">Following: {{ user.following.count }}</a>
+                            </div>
+                            <div class="btn-group">
+                                {% if user.pk == current_user.pk %}
+                                    <a href="{% url 'edit_user' user.pk %}" class="btn btn-outline-primary">Redirect</a>
+                                {% else %}
+                                    <form method="post" action="{% url 'follow_user' user.pk %}">
+                                        {% csrf_token %}
+                                        {% if current_user in user.followers.all %}
+                                            <button type="submit" class="btn btn-outline-primary">Unfollow</button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-outline-primary">Follow</button>
+                                        {% endif %}
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

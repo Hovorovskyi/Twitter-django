@@ -1,0 +1,26 @@
+<!-- templates/posts/edit_post.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-3 text-center container">
+    <div class="row py-lg-3">
+        <div class="col-md-7 col-lg-8 mx-auto">
+            <h1 class="fw-light">Edit Post</h1>
+        </div>
+    </div>
+</section>
+
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-8 mx-auto">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="w-100 btn btn-primary btn-lg" type="submit">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
